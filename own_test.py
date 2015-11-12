@@ -13,7 +13,10 @@ import time
 import numpy as np
 import pysolar
 import pytz
-from skimage import io
+try:
+    pass#from skimage import io
+except ImportError:
+    pass
 
 from pixeltools import fastopc as opc
 from pixeltools import color_utils
@@ -50,7 +53,12 @@ def sample(imgarr, fx, fy):
 NUM_COLS = 3 # rgb
 
 def read_image(file):
-    ar = io.imread(file).astype(np.float64)
+    try:
+        ar = io.imread(file).astype(np.float64)
+        np.save(file + ".npy", ar)
+    except NameError:
+        print("No scikits-image. Try to load from saved file.")
+        ar = np.load(file + ".npy")
     while ar.shape[2] > NUM_COLS:
         ar = np.delete(ar, NUM_COLS, axis=2)
     ar /= 255.
