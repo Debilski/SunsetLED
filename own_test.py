@@ -35,7 +35,7 @@ def sample(imgarr, fx, fy):
     if not 0 <= fy <= imgarr.shape[1]:
         return None
 
-    print("i:", ix, iy)
+    # print("i:", ix, iy)
 
     # Sample four points
     aa = sample_int(imgarr, ix,     iy)
