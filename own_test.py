@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from __future__ import print_function
+
 import datetime
 import json
 import math
@@ -21,10 +23,7 @@ from sunsetled.effect import Effect
 def sample_int(imgarr, x, y):
     return imgarr[x % imgarr.shape[0], y % imgarr.shape[1]]
 
-def sample(imgarr, x, y):
-    fx = x * max(imgarr.shape)
-    fy = y * max(imgarr.shape)
-
+def sample(imgarr, fx, fy):
     ix = int(fx)
     iy = int(fy)
 
@@ -200,11 +199,11 @@ class ImageTrafo:
         self.matrix = np.eye(4)
 
     def rotate(self, axis, theta):
-        self.matrix = self.matrix @ self.rotation_matrix(axis, theta)
+        self.matrix = np.dot(self.matrix, self.rotation_matrix(axis, theta))
         return self
 
     def translate(self, translation):
-        self.matrix = self.matrix @ self.translation_matrix(translation)
+        self.matrix = np.dot(self.matrix, self.translation_matrix(translation))
         return self
 
     def scale(self, scale):
@@ -254,9 +253,12 @@ class Sun(Effect):
         self.start_time = time
         self.image = image
         self.rot = rot
+        self.tick = 0
 
     def begin_frame(self):
-        self.M0 = ImageTrafo().scale(0.2).translate([0.4, 0.0, 0.5]) # .rotate([0, 2, 0], time.time() + self.rot)# .translate(np.array([1, 1, 1]) * math.sin(time.time()) * 0.2)
+        maxsize = np.max(self.image.shape)
+        self.tick += random.randint(0, 10) / 100.
+        self.M0 = ImageTrafo().rotate([0, 2, 0], self.time).scale(maxsize).translate([math.sin(self.time)*1, 0.0, math.sin(self.time+self.tick)*1]) # .rotate([0, 2, 0], time.time() + self.rot)# .translate(np.array([1, 1, 1]) * math.sin(time.time()) * 0.2)
 
     def shader(self, color, pixel_info):
         pos = pixel_info
