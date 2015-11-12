@@ -14,7 +14,7 @@ import numpy as np
 import pysolar
 import pytz
 try:
-    pass#from skimage import io
+    from skimage import io
 except ImportError:
     pass
 
