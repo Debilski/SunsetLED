@@ -8,7 +8,7 @@ class Effect:
         """
         pass
 
-    def shader(self, color, pixel_info):
+    def shader(self, color, pixel_info, ii=None):
         """
         This gets called for each pixel on the strip.
         Args:
@@ -29,4 +29,6 @@ class Effect:
 
         for ii, coord in enumerate(coordinates):
             col = led_strip[ii]
-            led_strip[ii] = self.shader(col, coord)
+            new_col = self.shader(col, coord, ii)
+            if new_col is not None:
+		    led_strip[ii] = new_col

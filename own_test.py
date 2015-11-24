@@ -285,7 +285,7 @@ class Sun(Effect):
         #self.M0 = ImageTrafo().scale(maxsize*2.)#.translate([0.5, 0, 1]).rotate([0, 1, 0], self.time/4).translate([0.5, 0, 1]) # math.pi/2)
         # print(self.M0.matrix)
 
-    def shader(self, color, pixel_info):
+    def shader(self, color, pixel_info, ii):
         pos = pixel_info
 
         x, _, y = self.M0.apply(pos)
@@ -305,11 +305,26 @@ class Flash(Effect):
     def __init__(self, time):
         self.start_time = time
 
-    def shader(self, color, pixel_info):
+    def shader(self, color, pixel_info, ii):
         if random.randint(0, 400) == 0:
             return [1., 1., 1.]
         else:
             return color
+
+class Slowline(Effect):
+    def __init__(self, time):
+        self.start_time = time
+
+    def shader(self, color, pixel_info, index):
+        scale = 0.05
+        max_pixels = 10
+        elapsed_time = (scale * (self.time - self.start_time)) % max_pixels
+        pixels = int(elapsed_time)
+        if index < pixels:
+            return [.6, .2, .2]
+        elif index == pixels:
+            return np.array([.6, .2, .2]) * (elapsed_time - pixels)
+
 
 
 start_time = time.time()
@@ -320,10 +335,12 @@ reddot = read_image("redline.png")
 sun = Sun(start_time, dot, 0)
 redmoon = Sun(start_time, reddot, 10)
 flash = Flash(start_time)
+slowline = Slowline(start_time)
 
 effects = [
     sun,
     redmoon,
+    slowline
 ]
 
 
