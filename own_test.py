@@ -390,5 +390,5 @@ for _ in range(500):
 
     filteredTimeDelta = max(filtered_time_delta, current_delay)
 
-    time.sleep(current_delay)
+    #time.sleep(current_delay)
 #    time.sleep(1 / options.fps)
