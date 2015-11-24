@@ -36,7 +36,7 @@ def sample(imgarr, fx, fy, dx=None, dy=None):
     if not 0 <= fy <= imgarr.shape[1]:
         return None
 
-    print("i:", ix, iy, dx, dy)
+    # print("i:", ix, iy, dx, dy)
 
     # Sample four points
     aa = sample_int(imgarr, ix,     iy)
@@ -249,7 +249,7 @@ class ImageTrafo:
         return np.dot(self.matrix, [1, 1, 1, 0])[0:3]
 
     def apply(self, vec):
-        n = np.dot(self.matrix, np.append(vec, 0))
+        n = np.dot(self.matrix, [vec[0], vec[1], vec[2], 0])
 #        print(self.matrix)
         return n[0:3]
 
@@ -361,7 +361,7 @@ time_delta = 0
 filter_gain = 0.05
 
 #while True:
-for _ in range(150):
+for _ in range(5000):
     loop_start = time.time()
 
     now = datetime.datetime.now(tz=tz)
@@ -377,18 +377,11 @@ for _ in range(150):
 
     for effect in effects:
         effect.render(pixels, coordinates, t)
-
     client.put_pixels(0, pixels)
 
     flashed_pixels = np.array(pixels, dtype=np.float64)
     flash.render(flashed_pixels, coordinates, t)
-
     client.put_pixels(0, flashed_pixels)
-
-    for effect in effects:
-        effect.render(pixels, coordinates, t)
-
-    client.put_pixels(0, pixels)
 
     filtered_time_delta += (time_delta - filtered_time_delta) * filter_gain
 
@@ -398,7 +391,7 @@ for _ in range(150):
 
     duration = time.time() - loop_start
 
-    min_delay = 1/20. # secs
+    min_delay = 1/200. # secs
     if duration < min_delay:
         print("Sleeping", min_delay - duration)
         time.sleep(min_delay - duration)
