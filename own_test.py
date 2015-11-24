@@ -402,6 +402,8 @@ for _ in range(150):
     if duration < min_delay:
         print("Sleeping", min_delay - duration)
         time.sleep(min_delay - duration)
+    else:
+        print("Not sleeping. Took already {duration} secs. (Limit: {limit})".format(duration=duration, limit=min_delay))
 
     #time.sleep(current_delay)
 #    time.sleep(1 / options.fps)
