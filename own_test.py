@@ -269,7 +269,7 @@ class Sun(Effect):
         self.tick = 0
         self.tock = 0
 
-        self.time_scale = 0.1
+        self.time_scale = 0.03
 
     def begin_frame(self):
         maxsize = np.max(self.image.shape) / 3.0
@@ -361,7 +361,9 @@ time_delta = 0
 filter_gain = 0.05
 
 #while True:
-for _ in range(500):
+for _ in range(150):
+    loop_start = time.time()
+
     now = datetime.datetime.now(tz=tz)
     print(now)
     t = time.time() - start_time
@@ -383,12 +385,23 @@ for _ in range(500):
 
     client.put_pixels(0, flashed_pixels)
 
+    for effect in effects:
+        effect.render(pixels, coordinates, t)
+
+    client.put_pixels(0, pixels)
 
     filtered_time_delta += (time_delta - filtered_time_delta) * filter_gain
 
     current_delay += (min_time_delta - time_delta) * filter_gain
 
     filteredTimeDelta = max(filtered_time_delta, current_delay)
+
+    duration = time.time() - loop_start
+
+    min_delay = 1/20. # secs
+    if duration < min_delay:
+        print("Sleeping", min_delay - duration)
+        time.sleep(min_delay - duration)
 
     #time.sleep(current_delay)
 #    time.sleep(1 / options.fps)
