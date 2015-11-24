@@ -27,6 +27,7 @@ import socket
 import struct
 import time
 
+import six
 import numpy
 
 
@@ -86,7 +87,10 @@ class FastOPC(object):
                 source = numpy.asarray(source)
                 # TODO: No copying
                 clipped = numpy.clip(source * 255, 0, 255)
-                source = clipped.astype('B').tobytes()
+                if six.PY3:
+                    source = clipped.astype('B').tobytes()
+                else:
+                    source = clipped.astype('B').tostring()
 
             bytes_ += len(source)
             parts.append(source)
