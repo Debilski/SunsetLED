@@ -11,6 +11,7 @@ import sys
 import time
 
 import numpy as np
+import numpy.linalg as linalg
 import pysolar
 import pytz
 try:
@@ -26,7 +27,7 @@ from sunsetled.effect import Effect
 def sample_int(imgarr, x, y):
     return imgarr[x % imgarr.shape[0], y % imgarr.shape[1]]
 
-def sample(imgarr, fx, fy):
+def sample(imgarr, fx, fy, dx=None, dy=None):
     ix = int(fx)
     iy = int(fy)
 
@@ -35,7 +36,7 @@ def sample(imgarr, fx, fy):
     if not 0 <= fy <= imgarr.shape[1]:
         return None
 
-    # print("i:", ix, iy)
+    print("i:", ix, iy, dx, dy)
 
     # Sample four points
     aa = sample_int(imgarr, ix,     iy)
@@ -215,7 +216,7 @@ class ImageTrafo:
         return self
 
     def scale(self, scale):
-        self.matrix *= scale
+        self.matrix *= [scale, scale, scale, 1]
         return self
 
     @staticmethod
@@ -243,8 +244,12 @@ class ImageTrafo:
                          [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc, 0],
                          [0, 0, 0, 1]], dtype=np.float64)
 
+    def scaling_vec(self):
+        # print(linalg.inv(self.matrix[0:3, 0:3]))
+        return np.dot(self.matrix, [1, 1, 1, 0])[0:3]
+
     def apply(self, vec):
-        n = np.dot(self.matrix, np.append(vec, 1))
+        n = np.dot(self.matrix, np.append(vec, 0))
 #        print(self.matrix)
         return n[0:3]
 
@@ -262,22 +267,27 @@ class Sun(Effect):
         self.image = image
         self.rot = rot
         self.tick = 0
+        self.tock = 0
 
     def begin_frame(self):
-        maxsize = np.max(self.image.shape)
-        self.tick += random.randint(0, 10) / 100.
-        self.M0 = ImageTrafo().rotate([0, 2, 0], self.time).scale(maxsize).translate([math.sin(self.time)*1, 0.0, math.sin(self.time+self.tick)*1]) # .rotate([0, 2, 0], time.time() + self.rot)# .translate(np.array([1, 1, 1]) * math.sin(time.time()) * 0.2)
+        maxsize = np.max(self.image.shape) / 3.0
+        self.tick += random.randint(0, 10) / 1000.
+        self.tock += random.randint(0, 10) / 1000.
+        self.M0 = ImageTrafo().rotate([0, 2, 0], self.time/10.+self.tick*2).scale(maxsize).translate([math.sin(self.time/10.+self.tick*2)*0.5, 0.0, math.sin(self.time/10.+self.tock)*0.5]) # .rotate([0, 2, 0], time.time() + self.rot)# .translate(np.array([1, 1, 1]) * math.sin(time.time()) * 0.2)
+        #self.M0 = ImageTrafo().scale(maxsize*2.)#.translate([0.5, 0, 1]).rotate([0, 1, 0], self.time/4).translate([0.5, 0, 1]) # math.pi/2)
+        # print(self.M0.matrix)
 
     def shader(self, color, pixel_info):
         pos = pixel_info
 
         x, _, y = self.M0.apply(pos)
+        dx, _, dy = self.M0.scaling_vec()
 
         import pdb
         #pdb.set_trace()
 
         try:
-            r, g, b = sample(self.image, x, y)
+            r, g, b = sample(self.image, x, y, dx=dy, dy=dy)
         except TypeError:
             return color
 
@@ -288,7 +298,7 @@ class Flash(Effect):
         self.start_time = time
 
     def shader(self, color, pixel_info):
-        if random.randint(0, 200) == 0:
+        if random.randint(0, 400) == 0:
             return [1., 1., 1.]
         else:
             return color
@@ -306,7 +316,6 @@ flash = Flash(start_time)
 effects = [
     sun,
     redmoon,
-    flash
 ]
 
 
@@ -360,6 +369,12 @@ for _ in range(500):
         effect.render(pixels, coordinates, t)
 
     client.put_pixels(0, pixels)
+
+    flashed_pixels = np.array(pixels, dtype=np.float64)
+    flash.render(flashed_pixels, coordinates, t)
+
+    client.put_pixels(0, flashed_pixels)
+
 
     filtered_time_delta += (time_delta - filtered_time_delta) * filter_gain
 

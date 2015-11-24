@@ -84,8 +84,9 @@ class FastOPC(object):
         for source in sources:
             if not isinstance(source, bytes):
                 source = numpy.asarray(source)
-                numpy.clip(source * 255, 0, 255, out=source)
-                source = source.astype('B').tostring()
+                # TODO: No copying
+                clipped = numpy.clip(source * 255, 0, 255)
+                source = clipped.astype('B').tobytes()
 
             bytes_ += len(source)
             parts.append(source)
@@ -97,4 +98,4 @@ class FastOPC(object):
         self.send(struct.pack(">BBHHH", 0, 0xFF, len(msg) + 4, system_id, command_id) + msg)
 
     def set_global_color_correction(self, gamma, r, g, b):
-        self.sysEx(1, 1, json.dumps({'gamma': gamma, 'whitepoint':[r,g,b]}))
+        self.sys_ex(1, 1, json.dumps({'gamma': gamma, 'whitepoint':[r,g,b]}))
