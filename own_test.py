@@ -269,11 +269,19 @@ class Sun(Effect):
         self.tick = 0
         self.tock = 0
 
+        self.time_scale = 0.1
+
     def begin_frame(self):
         maxsize = np.max(self.image.shape) / 3.0
-        self.tick += random.randint(0, 10) / 1000.
-        self.tock += random.randint(0, 10) / 1000.
-        self.M0 = ImageTrafo().rotate([0, 2, 0], self.time/10.+self.tick*2).scale(maxsize).translate([math.sin(self.time/10.+self.tick*2)*0.5, 0.0, math.sin(self.time/10.+self.tock)*0.5]) # .rotate([0, 2, 0], time.time() + self.rot)# .translate(np.array([1, 1, 1]) * math.sin(time.time()) * 0.2)
+        self.tick += random.randint(0, 10) / 100.
+        self.tock += random.randint(0, 10) / 100.
+
+        ttick = self.time/10. + self.tick*2
+        ttick *= self.time_scale
+        ttock = self.time/10. + self.tock*2
+        ttock *= self.time_scale
+
+        self.M0 = ImageTrafo().rotate([0, 2, 0], ttick).scale(maxsize).translate([math.sin(ttick)*0.5, 0.0, math.sin(ttock)*0.5]) # .rotate([0, 2, 0], time.time() + self.rot)# .translate(np.array([1, 1, 1]) * math.sin(time.time()) * 0.2)
         #self.M0 = ImageTrafo().scale(maxsize*2.)#.translate([0.5, 0, 1]).rotate([0, 1, 0], self.time/4).translate([0.5, 0, 1]) # math.pi/2)
         # print(self.M0.matrix)
 
