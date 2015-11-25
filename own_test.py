@@ -321,9 +321,9 @@ class Slowline(Effect):
         elapsed_time = (scale * (self.time - self.start_time)) % max_pixels
         pixels = int(elapsed_time)
         if index < pixels:
-            return [.6, .2, .2]
+            return [.6, .1, .1]
         elif index == pixels:
-            return np.array([.6, .2, .2]) * (elapsed_time - pixels)
+            return np.array([.6, .1, .1]) * (elapsed_time - pixels)
 
 
 
@@ -377,8 +377,8 @@ filtered_time_delta = 0
 time_delta = 0
 filter_gain = 0.05
 
-#while True:
-for _ in range(5000):
+while True:
+#for _ in range(5000):
     loop_start = time.time()
 
     now = datetime.datetime.now(tz=tz)
@@ -399,6 +399,9 @@ for _ in range(5000):
     flashed_pixels = np.array(pixels, dtype=np.float64)
     flash.render(flashed_pixels, coordinates, t)
     client.put_pixels(0, flashed_pixels)
+    client.put_pixels(0, pixels)
+    client.put_pixels(0, flashed_pixels)
+    client.put_pixels(0, pixels)
 
     filtered_time_delta += (time_delta - filtered_time_delta) * filter_gain
 
