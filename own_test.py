@@ -304,12 +304,17 @@ class Sun(Effect):
 class Flash(Effect):
     def __init__(self, time):
         self.start_time = time
+        self.random_pixels = []
+
+    def begin_frame(self):
+        self.random_pixels = []
 
     def shader(self, color, pixel_info, ii):
         if random.randint(0, 400) == 0:
+            self.random_pixels.append(ii)
             return [1., 1., 1.]
-        else:
-            return color
+        elif (ii - 1) in self.random_pixels:
+            return [1., 1., 1.]
 
 class Slowline(Effect):
     def __init__(self, time):
@@ -336,6 +341,10 @@ sun = Sun(start_time, dot, 0)
 redmoon = Sun(start_time, reddot, 10)
 flash = Flash(start_time)
 slowline = Slowline(start_time)
+
+sun.key = "1"
+redmoon.key = "2"
+slowline.key = "3"
 
 effects = [
     sun,
@@ -392,16 +401,35 @@ while True:
     # reset the pixels
     pixels = np.zeros((coordinates.shape[0], NUM_COLS))
 
+    try:
+        with open("flash") as f:
+            data = json.load(f)
+    except (IOError, ValueError) as e:
+        data = {}
+
+
     for effect in effects:
-        effect.render(pixels, coordinates, t)
+        try:
+            if data.get(effect.key):
+                effect.render(pixels, coordinates, t)
+        except AttributeError:
+            effect.render(pixels, coordinates, t)
+
     client.put_pixels(0, pixels)
 
-    flashed_pixels = np.array(pixels, dtype=np.float64)
-    flash.render(flashed_pixels, coordinates, t)
-    client.put_pixels(0, flashed_pixels)
-    client.put_pixels(0, pixels)
-    client.put_pixels(0, flashed_pixels)
-    client.put_pixels(0, pixels)
+    if data.get("4"):
+        flashed_pixels = np.array(pixels, dtype=np.float64)
+        flash.render(flashed_pixels, coordinates, t)
+        client.put_pixels(0, flashed_pixels)
+        client.put_pixels(0, pixels)
+        client.put_pixels(0, flashed_pixels)
+        client.put_pixels(0, pixels)
+
+
+    if data.get("5"):
+	pixels[:] = [1, 1, 1]
+	client.put_pixels(0, pixels)
+
 
     filtered_time_delta += (time_delta - filtered_time_delta) * filter_gain
 
